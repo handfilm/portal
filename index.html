@@ -172,7 +172,7 @@ a{color:inherit;text-decoration:none}
 
   <div class="strip">
     <div class="st"><div class="l">Worlds</div><div class="v gold">5</div></div>
-    <div class="st"><div class="l">Modules</div><div class="v" id="s-mod">25</div></div>
+    <div class="st"><div class="l">Modules</div><div class="v" id="s-mod">33</div></div>
     <div class="st"><div class="l">Telemetry / s</div><div class="v num" id="s-tel">1,284</div></div>
     <div class="st"><div class="l">Posture</div><div class="v" style="color:#5fb87a">72%</div></div>
     <div class="st ticker" id="ticker">▸ initializing telemetry stream…</div>
@@ -180,7 +180,7 @@ a{color:inherit;text-decoration:none}
 
   <div class="hero">
     <h1>One kernel. <i>Five worlds.</i> Every system you've built.</h1>
-    <p>The meta-launcher for the entire estate — enterprise GRC, AI studio, film, ventures and labs, unified under a single command surface. Enter a world, or press ⌘K to jump straight to any of 25 apps across both domains.</p>
+    <p>The meta-launcher for the entire estate — enterprise GRC, AI studio, film, ventures and labs, unified under a single command surface. Enter a world, or press ⌘K to jump straight to any of 33 apps across both domains.</p>
   </div>
 
   <div class="deck" id="deck"></div>
@@ -202,7 +202,7 @@ a{color:inherit;text-decoration:none}
 <!-- command palette -->
 <div class="pal-mask" id="pal-mask"></div>
 <div class="pal" id="pal">
-  <div class="pal__in"><span>⌘</span><input id="pal-input" placeholder="Search 25 apps across 5 worlds…" autocomplete="off"></div>
+  <div class="pal__in"><span>⌘</span><input id="pal-input" placeholder="Search 33 apps across 5 worlds…" autocomplete="off"></div>
   <div class="pal__list" id="pal-list"></div>
 </div>
 
@@ -227,11 +227,17 @@ const WORLDS=[
    {n:"HIS",d:"Health information system",u:"https://handfilm.github.io/nexus/os/his/"},
    {n:"Pen-Test",d:"Offensive findings console",u:"https://handfilm.github.io/nexus/os/pentest/"},
    {n:"MCC",d:"Master Command Center",u:"https://handfilm.github.io/mcc/"},
-   {n:"H&H Corporate",d:"Company site",u:"https://handfilm.myshopify.com/pages/handsandhead-v2"}
+   {n:"H&H Corporate",d:"Company site",u:"https://handfilm.myshopify.com/pages/handsandhead-v2"},
+   {n:"H&H Corporate (Classic)",d:"Legacy company site",u:"https://handfilm.myshopify.com/pages/handsandhead"},
+   {n:"Nexus v4",d:"Portal iteration v4",u:"https://handfilm.myshopify.com/pages/nexus-v4"},
+   {n:"Nexus v3",d:"Portal iteration v3",u:"https://handfilm.myshopify.com/pages/nexus-v3"},
+   {n:"Author",d:"Author profile page",u:"https://handfilm.myshopify.com/pages/author"}
   ]},
  {id:"rawx",name:"RAWx STUDIO",tag:"AI · VFX · Creative OS",ac:"--rawx",col:"#a06cff",ico:"◢",metric:"Render queue · 3 active",
   apps:[
    {n:"RAWx Master OS",d:"Studio home",u:"https://handfilm.myshopify.com/pages/rawx-master-os"},
+   {n:"RAWx OS v2",d:"Studio iteration v2",u:"https://handfilm.myshopify.com/pages/rawx-os-v2"},
+   {n:"RAWx Slider",d:"Master OS slider variant",u:"https://handfilm.myshopify.com/pages/rawx-master-os-slider-1"},
    {n:"AI Studio",d:"Generative pipeline",u:"https://handfilm.myshopify.com/pages/rawx-ai-studio"},
    {n:"Brand Bible",d:"Identity system",u:"https://handfilm.myshopify.com/pages/rawx-brand-bible"},
    {n:"Bengal Tigress · AI VFX",d:"Rani Mukherjee showcase",u:"https://handfilm.myshopify.com/pages/rawx-rani-mukherjee-the-bengal-tigress-in-ai-vfx"}
@@ -245,13 +251,15 @@ const WORLDS=[
  {id:"ventures",name:"VENTURES",tag:"Standalone brands",ac:"--ventures",col:"#5fb87a",ico:"◇",metric:"3 brands live",
   apps:[
    {n:"AURAL",d:"Audio / music",u:"https://handfilm.github.io/aural/"},
+   {n:"AURAL (Shopify)",d:"Audio / music storefront",u:"https://handfilm.myshopify.com/pages/aural"},
    {n:"Skyhara",d:"Brand",u:"https://handfilm.myshopify.com/pages/skyhara"},
    {n:"Arutemika",d:"Brand",u:"https://handfilm.github.io/arutemika/"}
   ]},
  {id:"labs",name:"LABS",tag:"Prototypes · experiments",ac:"--labs",col:"#5a8dd6",ico:"⚗",metric:"2 prototypes",
   apps:[
    {n:"Vehicle",d:"Prototype app",u:"https://handfilm.github.io/vehicle/"},
-   {n:"ACAPP",d:"Prototype app",u:"https://handfilm.github.io/ACAPP/"}
+   {n:"ACAPP",d:"Prototype app",u:"https://handfilm.github.io/ACAPP/"},
+   {n:"Home Test",d:"Staging / test page",u:"https://handfilm.myshopify.com/pages/home-test"}
   ]}
 ];
 const ALL=WORLDS.flatMap(w=>w.apps.map(a=>({...a,world:w.name,col:w.col})));
@@ -277,14 +285,14 @@ const BOOT=[
  ["[ 0.01 ] cold boot · node handfilm.github.io",""],
  ["[ 0.04 ] mounting filesystem ................. ","OK"],
  ["[ 0.08 ] init event bus ...................... ","OK"],
- ["[ 0.13 ] world · <b>H&amp;H NEXUS</b> ............... ","ONLINE · 13 modules"],
- ["[ 0.17 ] world · <b>RAWx STUDIO</b> ............. ","ONLINE · 4 modules"],
+ ["[ 0.13 ] world · <b>H&amp;H NEXUS</b> ............... ","ONLINE · 17 modules"],
+ ["[ 0.17 ] world · <b>RAWx STUDIO</b> ............. ","ONLINE · 6 modules"],
  ["[ 0.21 ] world · <b>HANDFILM</b> ................ ","ONLINE · 3 modules"],
- ["[ 0.25 ] world · <b>VENTURES</b> ................ ","ONLINE · 3 modules"],
- ["[ 0.29 ] world · <b>LABS</b> .................... ","ONLINE · 2 modules"],
+ ["[ 0.25 ] world · <b>VENTURES</b> ................ ","ONLINE · 4 modules"],
+ ["[ 0.29 ] world · <b>LABS</b> .................... ","ONLINE · 3 modules"],
  ["[ 0.34 ] telemetry stream ................... ","LIVE"],
  ["[ 0.38 ] compliance posture ................. ","72%"],
- ["[ 0.41 ] 25 apps · 5 worlds · 2 domains bound ","OK"],
+ ["[ 0.41 ] 33 apps · 5 worlds · 2 domains bound ","OK"],
  ["[ 0.44 ] all systems nominal",""]
 ];
 let bi=0;const blog=$("#boot-log");
