@@ -172,7 +172,7 @@ a{color:inherit;text-decoration:none}
 
   <div class="strip">
     <div class="st"><div class="l">Worlds</div><div class="v gold">5</div></div>
-    <div class="st"><div class="l">Modules</div><div class="v" id="s-mod">21</div></div>
+    <div class="st"><div class="l">Modules</div><div class="v" id="s-mod">25</div></div>
     <div class="st"><div class="l">Telemetry / s</div><div class="v num" id="s-tel">1,284</div></div>
     <div class="st"><div class="l">Posture</div><div class="v" style="color:#5fb87a">72%</div></div>
     <div class="st ticker" id="ticker">▸ initializing telemetry stream…</div>
@@ -180,7 +180,7 @@ a{color:inherit;text-decoration:none}
 
   <div class="hero">
     <h1>One kernel. <i>Five worlds.</i> Every system you've built.</h1>
-    <p>The meta-launcher for the entire estate — enterprise GRC, AI studio, film, ventures and labs, unified under a single command surface. Enter a world, or press ⌘K to jump straight to any of 21 apps across both domains.</p>
+    <p>The meta-launcher for the entire estate — enterprise GRC, AI studio, film, ventures and labs, unified under a single command surface. Enter a world, or press ⌘K to jump straight to any of 25 apps across both domains.</p>
   </div>
 
   <div class="deck" id="deck"></div>
@@ -202,7 +202,7 @@ a{color:inherit;text-decoration:none}
 <!-- command palette -->
 <div class="pal-mask" id="pal-mask"></div>
 <div class="pal" id="pal">
-  <div class="pal__in"><span>⌘</span><input id="pal-input" placeholder="Search 21 apps across 5 worlds…" autocomplete="off"></div>
+  <div class="pal__in"><span>⌘</span><input id="pal-input" placeholder="Search 25 apps across 5 worlds…" autocomplete="off"></div>
   <div class="pal__list" id="pal-list"></div>
 </div>
 
@@ -213,7 +213,7 @@ const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
 
 /* ===================== DATA — every canonical app, both domains ===================== */
 const WORLDS=[
- {id:"nexus",name:"H&H NEXUS",tag:"Enterprise GRC · Audit · ERP",ac:"--nexus",col:"#d4af37",ico:"⬡",metric:"Posture 72% · 6 NCs",
+ {id:"nexus",name:"H&H NEXUS",tag:"Enterprise GRC · Audit · ERP · Fintech · Ops",ac:"--nexus",col:"#d4af37",ico:"⬡",metric:"Posture 72% · 6 NCs",
   apps:[
    {n:"App Hub",d:"Module launcher",u:"https://handfilm.github.io/nexus/os/hub/"},
    {n:"GRC Command",d:"ISO 27001 + cyber posture",u:"https://handfilm.github.io/nexus/os/grc/"},
@@ -221,6 +221,10 @@ const WORLDS=[
    {n:"CRM",d:"Client ledger & pipeline",u:"https://handfilm.github.io/nexus/os/#/crm"},
    {n:"Accounting",d:"Ledger · AR · P&L",u:"https://handfilm.github.io/nexus/os/accounting/"},
    {n:"Vendor Risk",d:"Third-party / TPRM console",u:"https://handfilm.github.io/nexus/os/vendor/"},
+   {n:"Fintech",d:"Financial technology dashboard",u:"https://handfilm.github.io/nexus/os/fintech/"},
+   {n:"Inventory",d:"Stock & asset management",u:"https://handfilm.github.io/nexus/os/inventory/"},
+   {n:"Incident",d:"Incident response & tracking",u:"https://handfilm.github.io/nexus/os/incident/"},
+   {n:"HIS",d:"Health information system",u:"https://handfilm.github.io/nexus/os/his/"},
    {n:"Pen-Test",d:"Offensive findings console",u:"https://handfilm.github.io/nexus/os/pentest/"},
    {n:"MCC",d:"Master Command Center",u:"https://handfilm.github.io/mcc/"},
    {n:"H&H Corporate",d:"Company site",u:"https://handfilm.myshopify.com/pages/handsandhead-v2"}
@@ -273,14 +277,14 @@ const BOOT=[
  ["[ 0.01 ] cold boot · node handfilm.github.io",""],
  ["[ 0.04 ] mounting filesystem ................. ","OK"],
  ["[ 0.08 ] init event bus ...................... ","OK"],
- ["[ 0.13 ] world · <b>H&amp;H NEXUS</b> ............... ","ONLINE · 9 modules"],
+ ["[ 0.13 ] world · <b>H&amp;H NEXUS</b> ............... ","ONLINE · 13 modules"],
  ["[ 0.17 ] world · <b>RAWx STUDIO</b> ............. ","ONLINE · 4 modules"],
  ["[ 0.21 ] world · <b>HANDFILM</b> ................ ","ONLINE · 3 modules"],
  ["[ 0.25 ] world · <b>VENTURES</b> ................ ","ONLINE · 3 modules"],
  ["[ 0.29 ] world · <b>LABS</b> .................... ","ONLINE · 2 modules"],
  ["[ 0.34 ] telemetry stream ................... ","LIVE"],
  ["[ 0.38 ] compliance posture ................. ","72%"],
- ["[ 0.41 ] 21 apps · 5 worlds · 2 domains bound ","OK"],
+ ["[ 0.41 ] 25 apps · 5 worlds · 2 domains bound ","OK"],
  ["[ 0.44 ] all systems nominal",""]
 ];
 let bi=0;const blog=$("#boot-log");
@@ -383,4 +387,3 @@ addEventListener("keydown",e=>{
 </script>
 </body>
 </html>
-
