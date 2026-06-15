@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS OS // GRC COMMAND CENTER</title>
+<style>
+/* =========================================================
+   NEXUS GRC OS — DESIGN TOKENS
+   Palette: Abyss black · Forge gray · Neon orange · Cyan ice
+   Type: JetBrains Mono (mono-first stack) — enterprise data feel
+   Signature: The "Threat Spine" — a live animated left-rail
+   pulse that breathes like a heartbeat monitor.
+   ========================================================= */
+:root {
+  --bg:       #050507;
+  --bg1:      #090b0e;
+  --bg2:      #0d1017;
+  --panel:    #0f1218;
+  --panel2:   #141820;
+  --border:   #1c2230;
+  --border2:  #253044;
+  --txt:      #d6dce8;
+  --muted:    #566070;
+  --dim:      #2a3345;
+  --orange:   #ff5c1a;
+  --orange2:  #ff8050;
+  --cyan:     #00d4ff;
+  --cyan2:    #6ee7ff;
+  --green:    #00e87a;
+  --red:      #ff3355;
+  --yellow:   #ffd166;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --radius: 0px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--txt);font-family:var(--mono);font-size:12px;line-height:1.6;-webkit-font-smoothing:antialiased}
+::selection{background:var(--orange);color:#000}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg1)}
+::-webkit-scrollbar-thumb{background:var(--border2)}
+a{color:inherit;text-decoration:none}
+
+/* ── BOOT SCREEN ────────────────────────────────── */
+#boot {
+  position:fixed;inset:0;z-index:500;
+  background:#030305;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity .7s ease,visibility .7s ease;
+}
+#boot.done{opacity:0;visibility:hidden;pointer-events:none}
+.boot-logo {
+  display:flex;align-items:center;gap:14px;margin-bottom:8px;
+}
+.boot-logo .hex {
+  width:52px;height:52px;display:flex;align-items:center;justify-content:center;
+  font-size:28px;border:1px solid var(--orange);color:var(--orange);
+  animation:hexspin 8s linear infinite;
+}
+@keyframes hexspin{to{transform:rotate(360deg)}}
+.boot-logo h1 {font-size:28px;letter-spacing:8px;color:var(--txt);font-weight:700}
+.boot-logo h1 span{color:var(--orange)}
+.boot-sub {font-size:9px;letter-spacing:5px;color:var(--muted);margin-bottom:40px;text-transform:uppercase}
+.boot-log {
+  width:min(640px,92vw);height:200px;overflow:hidden;
+  font-size:11px;line-height:2;color:var(--muted);
+  border-left:1px solid var(--border2);padding-left:16px;
+}
+.boot-log .ok{color:var(--green)}
+.boot-log .warn{color:var(--yellow)}
+.boot-log .err{color:var(--red)}
+.boot-log b{color:var(--orange)}
+.boot-track {
+  width:min(640px,92vw);height:1px;background:var(--border2);margin-top:20px;overflow:hidden;
+}
+.boot-fill{height:100%;width:0;background:linear-gradient(90deg,var(--orange),var(--cyan));transition:width .2s linear}
+.boot-ready {
+  margin-top:16px;font-size:9px;letter-spacing:4px;color:var(--orange);
+  opacity:0;transition:opacity .4s;text-transform:uppercase;
+}
+.boot-ready.on{opacity:1;animation:blink 1.1s infinite}
+@keyframes blink{50%{opacity:.3}}
+
+/* ── SHELL LAYOUT ─────────────────────────────── */
+.shell {
+  display:grid;
+  grid-template-rows:auto auto 1fr;
+  grid-template-columns:220px 1fr;
+  height:100vh;
+  opacity:0;transition:opacity .6s ease;
+}
+.shell.on{opacity:1}
+
+/* ── TOP BAR ──────────────────────────────────── */
+.topbar {
+  grid-column:1/-1;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;height:48px;
+  background:var(--bg1);
+  border-bottom:1px solid var(--border);
+  position:relative;z-index:40;
+}
+.topbar-l{display:flex;align-items:center;gap:16px}
+.topbar-logo{display:flex;align-items:center;gap:10px}
+.topbar-logo .ico{
+  width:30px;height:30px;border:1px solid var(--orange);color:var(--orange);
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  animation:hexspin 20s linear infinite;
+}
+.topbar-logo .wordmark{font-size:13px;font-weight:700;letter-spacing:4px;color:var(--txt)}
+.topbar-logo .wordmark span{color:var(--orange)}
+.tenant-badge {
+  display:flex;align-items:center;gap:7px;
+  border:1px solid var(--border2);
+  padding:4px 10px;
+  font-size:9px;letter-spacing:1.5px;color:var(--cyan);
+  text-transform:uppercase;
+}
+.tenant-badge::before{
+  content:"";width:6px;height:6px;border-radius:50%;
+  background:var(--cyan);
+  box-shadow:0 0 8px var(--cyan);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.topbar-r{display:flex;align-items:center;gap:14px}
+.hud-stat{font-size:9px;color:var(--muted);letter-spacing:.5px;text-align:right}
+.hud-stat b{color:var(--txt);display:block;font-size:12px}
+.role-pill{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,92,26,.08);border:1px solid rgba(255,92,26,.25);
+  padding:4px 10px;font-size:9px;letter-spacing:1.5px;color:var(--orange);
+  text-transform:uppercase;
+}
+.sys-ok{display:flex;align-items:center;gap:6px;font-size:9px;color:var(--green);letter-spacing:1.5px}
+.sys-ok::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.6s infinite}
+
+/* ── THREAT SPINE (signature animated rail) ─────── */
+.threat-spine {
+  grid-row:2/4;grid-column:1;
+  background:var(--bg1);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  overflow-y:auto;overflow-x:hidden;
+  position:relative;
+}
+/* Heartbeat line running down spine left edge */
+.threat-spine::before {
+  content:"";
+  position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:linear-gradient(180deg,transparent 0%,var(--orange) 30%,var(--cyan) 70%,transparent 100%);
+  animation:spinebeat 3s ease-in-out infinite;
+}
+@keyframes spinebeat{
+  0%{transform:scaleY(0) translateY(-100%);opacity:.7}
+  50%{transform:scaleY(1) translateY(0);opacity:1}
+  100%{transform:scaleY(0) translateY(100%);opacity:.7}
+}
+.spine-section{padding:16px 0 8px}
+.spine-label{
+  padding:0 14px 6px;font-size:8px;letter-spacing:2.5px;
+  color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);
+  margin-bottom:4px;
+}
+.spine-item {
+  display:flex;align-items:center;gap:9px;
+  padding:8px 14px;cursor:pointer;
+  font-size:10px;letter-spacing:.5px;color:var(--muted);
+  transition:.14s;border-left:2px solid transparent;
+  position:relative;
+}
+.spine-item:hover,.spine-item.active{
+  color:var(--txt);background:var(--bg2);
+  border-left-color:var(--orange);
+}
+.spine-item.active{color:var(--orange)}
+.spine-item .si-icon{font-size:13px;width:18px;text-align:center;flex-shrink:0}
+.spine-item .si-badge{
+  margin-left:auto;font-size:8px;padding:1px 5px;
+  background:rgba(255,92,26,.15);color:var(--orange);border-radius:2px;
+  min-width:18px;text-align:center;
+}
+.spine-item .si-badge.crit{background:rgba(255,51,85,.15);color:var(--red)}
+.spine-item .si-badge.ok{background:rgba(0,232,122,.12);color:var(--green)}
+
+/* ── METRICS STRIP ────────────────────────────── */
+.metric-strip {
+  grid-column:2;
+  display:flex;align-items:stretch;
+  border-bottom:1px solid var(--border);
+  background:var(--bg1);
+  overflow-x:auto;
+}
+.mcard{
+  flex:1;min-width:130px;padding:12px 18px;
+  border-right:1px solid var(--border);
+}
+.mcard:last-child{border-right:none}
+.mcard .mc-l{font-size:7.5px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.mcard .mc-v{font-size:22px;font-weight:700;line-height:1;letter-spacing:-1px}
+.mcard .mc-v.orange{color:var(--orange)}
+.mcard .mc-v.cyan{color:var(--cyan)}
+.mcard .mc-v.green{color:var(--green)}
+.mcard .mc-v.red{color:var(--red)}
+.mcard .mc-v.yellow{color:var(--yellow)}
+.mcard .mc-s{font-size:9px;color:var(--muted);margin-top:3px}
+.mcard .mc-bar{height:2px;background:var(--border);margin-top:8px;overflow:hidden}
+.mcard .mc-bar i{display:block;height:100%;background:var(--orange);transition:width 1s ease}
+
+/* ── MAIN CONTENT ─────────────────────────────── */
+.main {
+  grid-column:2;
+  overflow-y:auto;
+  background:var(--bg);
+  display:flex;flex-direction:column;
+}
+
+/* ── VIEW PANELS ──────────────────────────────── */
+.view{display:none;flex:1;padding:22px 26px}
+.view.active{display:flex;flex-direction:column;gap:18px}
+.view-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px}
+.view-title{font-size:18px;font-weight:700;letter-spacing:1px}
+.view-title span{color:var(--orange)}
+.view-sub{color:var(--muted);font-size:10px;margin-top:4px;letter-spacing:.5px}
+.view-actions{display:flex;gap:8px;flex-shrink:0}
+
+/* Buttons */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:7px 14px;font-size:10px;letter-spacing:1.5px;
+  font-family:var(--mono);cursor:pointer;border:none;
+  text-transform:uppercase;transition:.14s;
+}
+.btn-primary{background:var(--orange);color:#000;font-weight:700}
+.btn-primary:hover{background:var(--orange2)}
+.btn-secondary{background:transparent;border:1px solid var(--border2);color:var(--muted)}
+.btn-secondary:hover{border-color:var(--orange);color:var(--orange)}
+.btn-cyan{background:rgba(0,212,255,.1);border:1px solid var(--cyan);color:var(--cyan)}
+.btn-cyan:hover{background:rgba(0,212,255,.2)}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--border2);color:var(--txt)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* Grid layouts */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+/* Card */
+.card{
+  background:var(--panel);border:1px solid var(--border);
+  padding:18px;position:relative;overflow:hidden;
+}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--border2)}
+.card.accent-orange::before{background:var(--orange)}
+.card.accent-cyan::before{background:var(--cyan)}
+.card.accent-green::before{background:var(--green)}
+.card.accent-red::before{background:var(--red)}
+.card-title{font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
+.card-val{font-size:28px;font-weight:700;letter-spacing:-1px;line-height:1}
+.card-sub{font-size:9px;color:var(--muted);margin-top:5px}
+
+/* App grid (schema-driven) */
+.app-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.app-card{
+  background:var(--panel);border:1px solid var(--border);
+  padding:16px;cursor:pointer;transition:.16s;
+  position:relative;overflow:hidden;
+}
+.app-card::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,92,26,.04),transparent);
+  opacity:0;transition:.16s;
+}
+.app-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.app-card:hover::after{opacity:1}
+.app-card .ac-ico{font-size:22px;margin-bottom:10px}
+.app-card .ac-name{font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:4px}
+.app-card .ac-desc{font-size:9px;color:var(--muted);line-height:1.5;margin-bottom:12px}
+.app-card .ac-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
+.ac-status{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;padding:2px 7px}
+.status-online{background:rgba(0,232,122,.1);color:var(--green);border:1px solid rgba(0,232,122,.2)}
+.status-offline{background:rgba(255,51,85,.1);color:var(--red);border:1px solid rgba(255,51,85,.2)}
+.status-beta{background:rgba(255,209,102,.1);color:var(--yellow);border:1px solid rgba(255,209,102,.2)}
+.status-maint{background:rgba(255,92,26,.1);color:var(--orange);border:1px solid rgba(255,92,26,.2)}
+.ac-cat-tag{font-size:7.5px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.ac-launch{
+  font-size:8px;letter-spacing:1.5px;color:var(--orange);
+  margin-top:10px;display:flex;align-items:center;gap:5px;
+  opacity:0;transition:.14s;text-transform:uppercase;
+}
+.app-card:hover .ac-launch{opacity:1}
+
+/* Log/feed */
+.feed{background:var(--panel);border:1px solid var(--border);font-size:10px;line-height:1.8;max-height:220px;overflow-y:auto}
+.feed-header{padding:8px 14px;border-bottom:1px solid var(--border);font-size:8px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
+.feed-header .live{display:flex;align-items:center;gap:5px;color:var(--green)}
+.feed-header .live::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 1.2s infinite}
+.feed-row{padding:4px 14px;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:10px}
+.feed-row:last-child{border-bottom:none}
+.feed-row .fr-time{color:var(--muted);flex-shrink:0;font-size:9px;width:85px}
+.feed-row .fr-src{color:var(--cyan);flex-shrink:0;width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.feed-row .fr-msg{color:var(--txt)}
+.feed-row.sev-crit .fr-msg{color:var(--red)}
+.feed-row.sev-warn .fr-msg{color:var(--yellow)}
+.feed-row.sev-info .fr-msg{color:var(--muted)}
+
+/* Table */
+.data-table{width:100%;border-collapse:collapse;font-size:10px}
+.data-table th{
+  text-align:left;padding:8px 12px;
+  font-size:8px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;
+  border-bottom:1px solid var(--border);font-weight:400;
+}
+.data-table td{
+  padding:9px 12px;border-bottom:1px solid var(--border);
+  color:var(--txt);vertical-align:middle;
+}
+.data-table tr:hover td{background:var(--bg1)}
+.data-table tbody tr:last-child td{border-bottom:none}
+
+/* FSM Audit States */
+.fsm-track{display:flex;align-items:center;gap:0;margin:14px 0}
+.fsm-step{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;
+  position:relative;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);
+  text-align:center;
+}
+.fsm-step::after{
+  content:"";position:absolute;top:14px;left:50%;right:-50%;
+  height:1px;background:var(--border);z-index:0;
+}
+.fsm-step:last-child::after{display:none}
+.fsm-dot{
+  width:28px;height:28px;border-radius:50%;
+  border:1px solid var(--border);background:var(--bg1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;position:relative;z-index:1;transition:.2s;
+}
+.fsm-step.done .fsm-dot{background:var(--green);border-color:var(--green);color:#000}
+.fsm-step.active .fsm-dot{background:var(--orange);border-color:var(--orange);color:#000;box-shadow:0 0 14px rgba(255,92,26,.4);animation:glow .9s infinite alternate}
+@keyframes glow{from{box-shadow:0 0 8px rgba(255,92,26,.3)}to{box-shadow:0 0 18px rgba(255,92,26,.7)}}
+.fsm-step.active .fsm-label{color:var(--orange)}
+.fsm-step.done .fsm-label{color:var(--green)}
+.fsm-label{margin-top:4px;font-size:8px}
+
+/* Notification toast */
+#toast-rack{position:fixed;top:58px;right:16px;z-index:600;display:flex;flex-direction:column;gap:7px}
+.toast{
+  background:var(--panel2);border:1px solid var(--border2);
+  padding:10px 14px;font-size:10px;
+  min-width:280px;max-width:340px;
+  display:flex;align-items:flex-start;gap:10px;
+  animation:toastin .2s ease;
+  border-left:3px solid var(--orange);
+}
+.toast.toast-err{border-left-color:var(--red)}
+.toast.toast-ok{border-left-color:var(--green)}
+.toast.toast-info{border-left-color:var(--cyan)}
+@keyframes toastin{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+.toast-ico{font-size:14px;flex-shrink:0;margin-top:1px}
+.toast-body{}
+.toast-title{font-size:10px;font-weight:700;margin-bottom:2px}
+.toast-msg{font-size:9px;color:var(--muted)}
+
+/* VAPT Scanner */
+.scan-bar-wrap{background:var(--bg1);border:1px solid var(--border);padding:14px}
+.scan-label{font-size:9px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between}
+.scan-bar{height:6px;background:var(--border);overflow:hidden;margin-bottom:12px}
+.scan-fill{height:100%;width:0;background:linear-gradient(90deg,var(--orange),var(--cyan));transition:width .3s ease}
+.vuln-list{display:flex;flex-direction:column;gap:6px}
+.vuln-row{
+  display:flex;align-items:center;gap:10px;
+  background:var(--panel);border:1px solid var(--border);
+  padding:8px 12px;font-size:10px;
+}
+.vuln-sev{
+  font-size:8px;letter-spacing:1.5px;padding:2px 6px;flex-shrink:0;
+  text-transform:uppercase;min-width:56px;text-align:center;
+}
+.sev-crit{background:rgba(255,51,85,.15);color:var(--red);border:1px solid rgba(255,51,85,.25)}
+.sev-high{background:rgba(255,92,26,.15);color:var(--orange);border:1px solid rgba(255,92,26,.25)}
+.sev-med{background:rgba(255,209,102,.1);color:var(--yellow);border:1px solid rgba(255,209,102,.2)}
+.sev-low{background:rgba(0,212,255,.08);color:var(--cyan);border:1px solid rgba(0,212,255,.15)}
+.vuln-id{color:var(--muted);flex-shrink:0;width:110px;font-size:9px}
+.vuln-name{flex:1;color:var(--txt)}
+.vuln-cvss{font-size:11px;font-weight:700;color:var(--red);flex-shrink:0;width:30px;text-align:right}
+
+/* Compliance progress */
+.compliance-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.comp-card{background:var(--panel);border:1px solid var(--border);padding:16px}
+.comp-name{font-size:11px;font-weight:700;margin-bottom:4px}
+.comp-standard{font-size:8px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px}
+.comp-ring-wrap{display:flex;align-items:center;gap:16px}
+.comp-ring{position:relative;width:60px;height:60px;flex-shrink:0}
+.comp-ring svg{transform:rotate(-90deg)}
+.comp-ring .ring-bg{fill:none;stroke:var(--border);stroke-width:5}
+.comp-ring .ring-fill{fill:none;stroke-width:5;stroke-linecap:butt;transition:stroke-dashoffset 1s ease}
+.comp-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.comp-details{flex:1}
+.comp-det-row{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:3px}
+.comp-det-row b{color:var(--txt)}
+.comp-action{margin-top:10px}
+
+/* Risk matrix */
+.risk-matrix{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-top:8px}
+.rm-cell{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  font-size:8px;font-weight:700;letter-spacing:.5px;cursor:default;
+  transition:.14s;
+}
+.rm-cell:hover{transform:scale(1.08)}
+.rm-cell.lvl-crit{background:rgba(255,51,85,.3);color:var(--red)}
+.rm-cell.lvl-high{background:rgba(255,92,26,.25);color:var(--orange)}
+.rm-cell.lvl-med{background:rgba(255,209,102,.18);color:var(--yellow)}
+.rm-cell.lvl-low{background:rgba(0,212,255,.12);color:var(--cyan)}
+.rm-cell.lvl-info{background:rgba(255,255,255,.04);color:var(--muted)}
+.rm-axis-label{font-size:8px;color:var(--muted);letter-spacing:1px}
+
+/* error/notice inline */
+.inline-err{
+  background:rgba(255,51,85,.08);border:1px solid rgba(255,51,85,.25);
+  padding:10px 14px;font-size:10px;color:var(--red);
+  display:flex;align-items:center;gap:8px;
+}
+.inline-info{
+  background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);
+  padding:10px 14px;font-size:10px;color:var(--cyan);
+  display:flex;align-items:center;gap:8px;
+}
+
+/* separator */
+.sep{border-bottom:1px solid var(--border);margin:4px 0}
+
+/* ── EVENT LOG FLOATER ────────────────────────── */
+#event-console{
+  position:fixed;bottom:16px;right:16px;
+  width:320px;
+  background:rgba(9,11,14,.95);border:1px solid var(--border2);
+  font-size:9px;line-height:1.7;z-index:100;
+  backdrop-filter:blur(10px);
+}
+.ev-hdr{
+  padding:6px 10px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:8px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;
+}
+.ev-hdr b{color:var(--cyan)}
+.ev-hdr button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:10px;font-family:var(--mono)}
+.ev-hdr button:hover{color:var(--txt)}
+#ev-log{height:100px;overflow-y:auto;padding:4px 0}
+.ev-row{padding:2px 10px;display:flex;gap:8px;border-bottom:1px solid var(--border)}
+.ev-row:last-child{border-bottom:none}
+.ev-time{color:var(--muted);flex-shrink:0}
+.ev-evt{color:var(--cyan);flex-shrink:0;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ev-data{color:var(--txt);opacity:.7}
+
+/* misc */
+.tag{display:inline-block;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;padding:2px 7px;border:1px solid var(--border2);color:var(--muted)}
+.tag.orange{border-color:rgba(255,92,26,.3);color:var(--orange)}
+.tag.cyan{border-color:rgba(0,212,255,.25);color:var(--cyan)}
+.tag.green{border-color:rgba(0,232,122,.2);color:var(--green)}
+.tag.red{border-color:rgba(255,51,85,.25);color:var(--red)}
+
+.section-label{font-size:8px;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     BOOT SCREEN
+═══════════════════════════════════════════════════════════ -->
+<div id="boot">
+  <div class="boot-logo">
+    <div class="hex">⬡</div>
+    <h1>NEXUS <span>GRC</span></h1>
+  </div>
+  <div class="boot-sub">Governance · Risk · Compliance · Cyber Intelligence</div>
+  <div class="boot-log" id="boot-log"></div>
+  <div class="boot-track"><div class="boot-fill" id="boot-fill"></div></div>
+  <div class="boot-ready" id="boot-ready">[ PRESS ANY KEY TO ENTER ]</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SHELL
+═══════════════════════════════════════════════════════════ -->
+<div class="shell" id="shell">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-l">
+      <div class="topbar-logo">
+        <div class="ico">⬡</div>
+        <div class="wordmark">NEXUS <span>GRC</span> OS</div>
+      </div>
+      <div class="tenant-badge" id="tenant-badge">
+        <!-- filled by JS -->
+      </div>
+    </div>
+    <div class="topbar-r">
+      <div class="sys-ok">ALL SYSTEMS NOMINAL</div>
+      <div class="role-pill" id="role-pill"><!-- filled by JS --></div>
+      <div class="hud-stat">
+        <b id="clock">--:--:--</b>
+        <span>UTC+6 · DHAKA</span>
+      </div>
+      <div class="hud-stat">
+        UPTIME <b id="uptime">00:00:00</b>
+      </div>
+    </div>
+  </header>
+
+  <!-- LEFT SPINE NAV -->
+  <nav class="threat-spine" id="spine">
+    <!-- filled by schema -->
+  </nav>
+
+  <!-- METRIC STRIP -->
+  <div class="metric-strip" id="metric-strip">
+    <!-- filled by JS -->
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main class="main" id="main">
+
+    <!-- VIEW: DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <div class="view-header">
+        <div>
+          <div class="view-title">COMMAND <span>OVERVIEW</span></div>
+          <div class="view-sub">NEXUS GRC OS · Real-time security posture · Tenant: Meridian Financial</div>
+        </div>
+        <div class="view-actions">
+          <button class="btn btn-secondary" onclick="EventBus.emit('EXPORT_REPORT',{type:'PDF'})">⬇ EXPORT REPORT</button>
+          <button class="btn btn-primary" onclick="EventBus.emit('FULL_SCAN_INITIATED',{scope:'ALL'})">▶ RUN FULL SCAN</button>
+        </div>
+      </div>
+
+      <!-- APP GRID (schema-driven) -->
+      <div>
+        <div class="section-label">ACTIVE MODULES — Schema-Driven Render</div>
+        <div class="app-grid" id="app-grid-render"></div>
+      </div>
+
+      <!-- LIVE FEED + RISK SUMMARY -->
+      <div class="grid-2">
+        <div>
+          <div class="section-label">LIVE THREAT FEED</div>
+          <div class="feed">
+            <div class="feed-header">
+              <span>SIEM STREAM</span>
+              <span class="live">LIVE</span>
+            </div>
+            <div id="live-feed-body"></div>
+          </div>
+        </div>
+        <div>
+          <div class="section-label">RISK HEAT MATRIX (Impact × Likelihood)</div>
+          <div class="card">
+            <div style="display:flex;gap:8px;font-size:8px;color:var(--muted);margin-bottom:8px">
+              <span>Likelihood →</span>
+            </div>
+            <div class="risk-matrix" id="risk-matrix"></div>
+            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+              <span class="tag red">CRITICAL</span>
+              <span class="tag orange">HIGH</span>
+              <span class="tag" style="border-color:rgba(255,209,102,.2);color:var(--yellow)">MEDIUM</span>
+              <span class="tag cyan">LOW</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: GRC CORE -->
+    <div class="view" id="view-grc">
+      <div class="view-header">
+        <div>
+          <div class="view-title">GRC <span>CORE</span></div>
+          <div class="view-sub">Governance, Risk & Compliance — Unified Command</div>
+        </div>
+        <div class="view-actions">
+          <button class="btn btn-secondary" onclick="EventBus.emit('GRC_SYNC',{framework:'ALL'})">↻ SYNC FRAMEWORKS</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">COMPLIANCE POSTURE BY FRAMEWORK</div>
+        <div class="compliance-grid" id="compliance-render"></div>
+      </div>
+
+      <!-- Security Audit FSM -->
+      <div>
+        <div class="section-label">SECURITY AUDIT — FINITE STATE MACHINE</div>
+        <div class="card accent-orange">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div>
+              <div style="font-size:11px;font-weight:700;margin-bottom:2px">AUDIT REF: SEC-AUDIT-2026-0041</div>
+              <div style="font-size:9px;color:var(--muted)">Meridian Bank · PCI DSS Gap Assessment</div>
+            </div>
+            <span class="tag orange" id="fsm-current-label">DISCOVERED</span>
+          </div>
+
+          <!-- FSM State Track -->
+          <div class="fsm-track" id="fsm-track"></div>
+
+          <div id="fsm-error-zone" style="margin-top:12px"></div>
+
+          <div style="display:flex;gap:8px;margin-top:14px">
+            <button class="btn btn-primary" id="fsm-advance-btn" onclick="EventBus.emit('AUDIT_ADVANCE',{})">ADVANCE STATE →</button>
+            <button class="btn btn-ghost" onclick="EventBus.emit('AUDIT_RESET',{})">↺ RESET</button>
+          </div>
+
+          <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+            <div class="section-label">STATE TRANSITION LOG</div>
+            <div id="fsm-log" style="font-size:9px;color:var(--muted);line-height:2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: VAPT SCANNER -->
+    <div class="view" id="view-vapt">
+      <div class="view-header">
+        <div>
+          <div class="view-title">VAPT <span>SCANNER</span></div>
+          <div class="view-sub">Vulnerability Assessment & Penetration Testing Engine</div>
+        </div>
+        <div class="view-actions">
+          <button class="btn btn-cyan" id="scan-btn" onclick="EventBus.emit('VAPT_SCAN_START',{target:'192.168.1.0/24'})">⚡ INITIATE SCAN</button>
+        </div>
+      </div>
+      <div class="scan-bar-wrap">
+        <div class="scan-label">
+          <span id="scan-status-label">STANDBY — AWAITING TRIGGER</span>
+          <span id="scan-pct">0%</span>
+        </div>
+        <div class="scan-bar"><div class="scan-fill" id="scan-fill"></div></div>
+        <div style="font-size:9px;color:var(--muted)" id="scan-target-info">Target: 192.168.1.0/24 · Ports: 1–65535 · Mode: FULL</div>
+      </div>
+      <div>
+        <div class="section-label">DISCOVERED VULNERABILITIES</div>
+        <div class="vuln-list" id="vuln-list-render"></div>
+      </div>
+    </div>
+
+    <!-- VIEW: CRM -->
+    <div class="view" id="view-crm">
+      <div class="view-header">
+        <div>
+          <div class="view-title">CLIENT <span>REGISTRY</span></div>
+          <div class="view-sub">Tenant-scoped CRM — Meridian Financial Group</div>
+        </div>
+        <div class="view-actions">
+          <button class="btn btn-primary" onclick="EventBus.emit('CRM_ADD_CLIENT',{})">+ NEW CLIENT</button>
+        </div>
+      </div>
+      <div class="card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>CLIENT ID</th><th>ORGANIZATION</th><th>INDUSTRY</th>
+              <th>COMPLIANCE SCORE</th><th>RISK LEVEL</th><th>STATUS</th><th>ACTION</th>
+            </tr>
+          </thead>
+          <tbody id="crm-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIEW: INTEL -->
+    <div class="view" id="view-intel">
+      <div class="view-header">
+        <div>
+          <div class="view-title">THREAT <span>INTELLIGENCE</span></div>
+          <div class="view-sub">CVE Feed · IOC Registry · Dark Web Monitoring</div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <div class="section-label">LIVE CVE FEED</div>
+          <div class="feed">
+            <div class="feed-header"><span>NVD · MITRE · CISA KEV</span><span class="live">LIVE</span></div>
+            <div id="cve-feed"></div>
+          </div>
+        </div>
+        <div>
+          <div class="section-label">ACTIVE IOC REGISTRY</div>
+          <div class="card">
+            <table class="data-table">
+              <thead><tr><th>IOC TYPE</th><th>VALUE</th><th>CONFIDENCE</th><th>TTL</th></tr></thead>
+              <tbody id="ioc-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Event Console -->
+<div id="event-console">
+  <div class="ev-hdr">
+    <span>⚡ <b>EVENT BUS</b> CONSOLE</span>
+    <button onclick="document.getElementById('ev-log').innerHTML=''" title="Clear">✕ CLR</button>
+  </div>
+  <div id="ev-log"></div>
+</div>
+
+<!-- Toast Rack -->
+<div id="toast-rack"></div>
+
+<script>
+/* ================================================================
+   ███████╗ ██████╗██╗  ██╗███████╗███╗   ███╗ █████╗
+   ██╔════╝██╔════╝██║  ██║██╔════╝████╗ ████║██╔══██╗
+   ███████╗██║     ███████║█████╗  ██╔████╔██║███████║
+   ╚════██║██║     ██╔══██║██╔══╝  ██║╚██╔╝██║██╔══██║
+   ███████║╚██████╗██║  ██║███████╗██║ ╚═╝ ██║██║  ██║
+   ╚══════╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝╚═╝  ╚═╝
+   MASTER SCHEMA — Single source of truth. UI is dumb; it maps.
+================================================================ */
+
+const NEXUS_SCHEMAS = {
+
+  /* ── TENANT CONTEXT ────────────────────── */
+  tenant: {
+    id: "TNT-MRD-2026",
+    name: "Meridian Financial Group",
+    region: "APAC / BD",
+    tier: "ENTERPRISE",
+    contractExpiry: "2027-12-31"
+  },
+
+  /* ── USER ROLE ─────────────────────────── */
+  session: {
+    userId: "USR-9041",
+    displayName: "R. Himon",
+    role: "ISO_AUDITOR",          // ISO_AUDITOR | CLIENT | ADMIN | READ_ONLY
+    permissions: ["READ","WRITE","AUDIT","SCAN","EXPORT"],
+    mfaVerified: true,
+    sessionExpiry: "08:00:00"
+  },
+
+  /* ── APP REGISTRY ──────────────────────── */
+  apps: [
+    {
+      id: "grc_core",
+      name: "GRC CORE",
+      category: "Governance",
+      icon: "🛡",
+      desc: "Unified governance, risk & compliance command center",
+      status: "online",
+      version: "v3.1.2",
+      navView: "grc"
+    },
+    {
+      id: "vapt_scanner",
+      name: "VAPT SCANNER",
+      category: "Security",
+      icon: "⚡",
+      desc: "Automated vulnerability assessment & pen-testing engine",
+      status: "online",
+      version: "v2.8.0",
+      navView: "vapt"
+    },
+    {
+      id: "crm",
+      name: "CLIENT REGISTRY",
+      category: "Operations",
+      icon: "🏢",
+      desc: "Tenant-scoped client relationship management",
+      status: "online",
+      version: "v1.9.5",
+      navView: "crm"
+    },
+    {
+      id: "siem",
+      name: "SIEM ENGINE",
+      category: "Security",
+      icon: "📡",
+      desc: "Real-time security information & event management",
+      status: "online",
+      version: "v4.0.1",
+      navView: "dashboard"
+    },
+    {
+      id: "threat_intel",
+      name: "THREAT INTEL",
+      category: "Intelligence",
+      icon: "🧠",
+      desc: "CVE feeds, IOC registry, dark web monitoring",
+      status: "online",
+      version: "v2.3.7",
+      navView: "intel"
+    },
+    {
+      id: "policy_engine",
+      name: "POLICY ENGINE",
+      category: "Governance",
+      icon: "📜",
+      desc: "Automated policy generation, versioning & attestation",
+      status: "beta",
+      version: "v0.9.0",
+      navView: "dashboard"
+    },
+    {
+      id: "erp_bridge",
+      name: "ERP BRIDGE",
+      category: "Integration",
+      icon: "🔗",
+      desc: "SAP / Oracle ERP bidirectional compliance data bridge",
+      status: "maint",
+      version: "v1.4.3",
+      navView: "dashboard"
+    },
+    {
+      id: "audit_vault",
+      name: "AUDIT VAULT",
+      category: "Governance",
+      icon: "🔒",
+      desc: "Immutable audit trail, evidence locker, e-discovery",
+      status: "online",
+      version: "v2.2.0",
+      navView: "dashboard"
+    }
+  ],
+
+  /* ── COMPLIANCE FRAMEWORKS ─────────────── */
+  compliance: [
+    {
+      id: "pci_dss",
+      name: "PCI DSS 4.0",
+      standard: "PAYMENT CARD INDUSTRY",
+      pct: 78,
+      controls: 264,
+      passed: 206,
+      failed: 31,
+      na: 27,
+      color: "#ff5c1a"
+    },
+    {
+      id: "iso27001",
+      name: "ISO 27001:2022",
+      standard: "INFORMATION SECURITY",
+      pct: 91,
+      controls: 93,
+      passed: 85,
+      failed: 5,
+      na: 3,
+      color: "#00d4ff"
+    },
+    {
+      id: "nist_csf",
+      name: "NIST CSF 2.0",
+      standard: "CYBER SECURITY FRAMEWORK",
+      pct: 64,
+      controls: 108,
+      passed: 69,
+      failed: 28,
+      na: 11,
+      color: "#ffd166"
+    },
+    {
+      id: "soc2",
+      name: "SOC 2 TYPE II",
+      standard: "TRUST SERVICE CRITERIA",
+      pct: 88,
+      controls: 64,
+      passed: 56,
+      failed: 5,
+      na: 3,
+      color: "#00e87a"
+    },
+    {
+      id: "gdpr",
+      name: "GDPR",
+      standard: "DATA PROTECTION",
+      pct: 72,
+      controls: 99,
+      passed: 71,
+      failed: 19,
+      na: 9,
+      color: "#a06cff"
+    },
+    {
+      id: "hipaa",
+      name: "HIPAA",
+      standard: "HEALTH DATA SECURITY",
+      pct: 55,
+      controls: 74,
+      passed: 41,
+      failed: 27,
+      na: 6,
+      color: "#ff3355"
+    }
+  ],
+
+  /* ── METRICS ────────────────────────────── */
+  metrics: [
+    { id:"threat_score",   label:"THREAT SCORE",      value:"47",    unit:"/ 100", color:"orange", bar:47 },
+    { id:"compliance_avg", label:"AVG COMPLIANCE",    value:"74%",   unit:"",      color:"cyan",   bar:74 },
+    { id:"open_vulns",     label:"OPEN VULNS",        value:"23",    unit:"CVEs",  color:"red",    bar:46 },
+    { id:"controls_pass",  label:"CONTROLS PASSING",  value:"528",   unit:"/ 702", color:"green",  bar:75 },
+    { id:"audit_queue",    label:"AUDIT QUEUE",       value:"6",     unit:"ITEMS", color:"yellow", bar:30 },
+    { id:"incidents_30d",  label:"INCIDENTS 30D",     value:"3",     unit:"OPEN",  color:"orange", bar:15 }
+  ],
+
+  /* ── SPINE NAV ──────────────────────────── */
+  nav: [
+    { section: "COMMAND", items: [
+      { id:"dashboard", icon:"⬡", label:"Overview",        badge:"" },
+      { id:"grc",       icon:"🛡", label:"GRC Core",        badge:"6" },
+      { id:"vapt",      icon:"⚡", label:"VAPT Scanner",    badge:"23", badgeClass:"crit" },
+    ]},
+    { section: "INTELLIGENCE", items: [
+      { id:"intel",     icon:"🧠", label:"Threat Intel",    badge:"NEW" },
+    ]},
+    { section: "OPERATIONS", items: [
+      { id:"crm",       icon:"🏢", label:"Client Registry", badge:"" },
+    ]},
+  ],
+
+  /* ── VAPT VULNERABILITIES ───────────────── */
+  vulns: [
+    { id:"CVE-2026-3318", name:"Apache Log4Shell RCE — Remote Code Execution via JNDI Lookup",         severity:"crit", cvss:"9.8", status:"Open" },
+    { id:"CVE-2025-4401", name:"OpenSSL Buffer Overflow in TLS Handshake Handler",                     severity:"high", cvss:"8.1", status:"Open" },
+    { id:"CVE-2025-1122", name:"Unpatched SMBv1 Protocol Exposure on Internal Subnet",                 severity:"high", cvss:"7.5", status:"Validating" },
+    { id:"CVE-2024-9823", name:"Default SSH Credentials on Edge Router 192.168.1.1",                   severity:"med",  cvss:"6.4", status:"Open" },
+    { id:"CVE-2024-7751", name:"Missing HSTS Header on Customer-Facing Portal",                        severity:"low",  cvss:"3.2", status:"Patch Applied" },
+    { id:"CVE-2024-5501", name:"Outdated jQuery 1.x with Known XSS Vectors",                           severity:"low",  cvss:"4.1", status:"Open" },
+  ],
+
+  /* ── CRM CLIENTS ────────────────────────── */
+  clients: [
+    { id:"CLT-0041", org:"Meridian Bank",        industry:"Finance",    score:78, risk:"HIGH",   status:"Active"   },
+    { id:"CLT-0042", org:"Apex Insurance Ltd",   industry:"Insurance",  score:91, risk:"LOW",    status:"Active"   },
+    { id:"CLT-0043", org:"HealthBridge Corp",    industry:"Healthcare", score:55, risk:"CRIT",   status:"Review"   },
+    { id:"CLT-0044", org:"LogiFreight Global",   industry:"Logistics",  score:67, risk:"MED",    status:"Active"   },
+    { id:"CLT-0045", org:"TechNova Solutions",   industry:"SaaS",       score:84, risk:"LOW",    status:"Active"   },
+  ]
+};
+
+/* ================================================================
+   ████████╗██╗  ██╗███████╗
+   ╚══██╔══╝██║  ██║██╔════╝
+      ██║   ███████║█████╗
+      ██║   ██╔══██║██╔══╝
+      ██║   ██║  ██║███████╗
+      ╚═╝   ╚═╝  ╚═╝╚══════╝
+   GLOBAL STATE — Single source of runtime truth
+================================================================ */
+
+const STATE = {
+  currentView: "dashboard",
+  tenantId: NEXUS_SCHEMAS.tenant.id,
+  userRole: NEXUS_SCHEMAS.session.role,
+  scanRunning: false,
+  scanPct: 0,
+  fsmState: 0,        // 0=Discovered 1=Validating 2=PatchApplied 3=Resolved
+  fsmLog: [],
+  threatFeed: [],
+};
+
+// FSM config — strictly ordered, no skipping
+const FSM_STATES = [
+  { label:"Discovered",    icon:"🔍", desc:"Vulnerability identified & logged into audit system." },
+  { label:"Validating",    icon:"🔬", desc:"Technical team confirms exploitability & impact." },
+  { label:"Patch Applied", icon:"🔧", desc:"Remediation deployed; awaiting verification." },
+  { label:"Resolved",      icon:"✅", desc:"Verified closed. Evidence captured in Audit Vault." },
+];
+
+/* ================================================================
+   EVENT BUS — Ghost Spine. Nothing calls functions directly.
+================================================================ */
+
+class EventBusClass {
+  constructor(){this._listeners={};}
+  on(event,cb){
+    if(!this._listeners[event])this._listeners[event]=[];
+    this._listeners[event].push(cb);
+  }
+  emit(event,payload={}){
+    const ts = new Date().toISOString().substr(11,8);
+    _logEvent(ts,event,payload);
+    (this._listeners[event]||[]).forEach(cb=>cb(payload));
+  }
+}
+const EventBus = new EventBusClass();
+
+function _logEvent(ts,event,payload){
+  const log=document.getElementById('ev-log');
+  if(!log)return;
+  const row=document.createElement('div');
+  row.className='ev-row';
+  const preview=Object.keys(payload).length
+    ? JSON.stringify(payload).slice(0,34)+'…' : '{}';
+  row.innerHTML=`<span class="ev-time">${ts}</span><span class="ev-evt">${event}</span><span class="ev-data">${preview}</span>`;
+  log.insertBefore(row,log.firstChild);
+  if(log.children.length>30)log.removeChild(log.lastChild);
+}
+
+/* ================================================================
+   EVENT HANDLERS — Register listeners here
+================================================================ */
+
+// APP_LAUNCHED — navigate to the app's view
+EventBus.on('APP_LAUNCHED', ({appId}) => {
+  const app = NEXUS_SCHEMAS.apps.find(a=>a.id===appId);
+  if(app) navigateTo(app.navView);
+  showToast('LAUNCHING','App: '+appId,'⚡','info');
+});
+
+// NAV_CHANGE
+EventBus.on('NAV_CHANGE', ({viewId}) => {
+  navigateTo(viewId);
+});
+
+// VAPT_SCAN_START
+EventBus.on('VAPT_SCAN_START', ({target}) => {
+  if(STATE.scanRunning) return;
+  STATE.scanRunning=true;
+  STATE.scanPct=0;
+  const btn=document.getElementById('scan-btn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ SCANNING...';}
+  document.getElementById('scan-status-label').textContent='SCANNING TARGET: '+target;
+  showToast('SCAN INITIATED','Target: '+target,'⚡','info');
+  runScan();
+});
+
+EventBus.on('FULL_SCAN_INITIATED', ({scope}) => {
+  navigateTo('vapt');
+  setTimeout(()=>EventBus.emit('VAPT_SCAN_START',{target:'ALL SUBNETS'}),300);
+});
+
+// AUDIT_ADVANCE — FSM strict forward only
+EventBus.on('AUDIT_ADVANCE', () => {
+  const errZone=document.getElementById('fsm-error-zone');
+  errZone.innerHTML='';
+  if(STATE.fsmState >= FSM_STATES.length-1){
+    errZone.innerHTML=`<div class="inline-info">ℹ Audit SEC-2026-0041 is already RESOLVED. No further transitions.</div>`;
+    return;
+  }
+  const from=FSM_STATES[STATE.fsmState].label;
+  STATE.fsmState++;
+  const to=FSM_STATES[STATE.fsmState].label;
+  STATE.fsmLog.push({ts:new Date().toISOString().substr(11,8),from,to,user:NEXUS_SCHEMAS.session.displayName});
+  renderFSM();
+  showToast('STATE TRANSITION',`${from} → ${to}`,'🔄','ok');
+});
+
+EventBus.on('AUDIT_RESET', () => {
+  STATE.fsmState=0;
+  STATE.fsmLog=[];
+  document.getElementById('fsm-error-zone').innerHTML='';
+  renderFSM();
+  showToast('AUDIT RESET','State machine reset to DISCOVERED','↺','warn');
+});
+
+// GRC_SYNC
+EventBus.on('GRC_SYNC', ({framework}) => {
+  showToast('SYNC INITIATED','Frameworks: '+framework,'↻','info');
+});
+
+// EXPORT_REPORT
+EventBus.on('EXPORT_REPORT', ({type}) => {
+  showToast('EXPORT QUEUED','Format: '+type+' · Sending to secure vault','⬇','info');
+});
+
+// CRM_ADD_CLIENT
+EventBus.on('CRM_ADD_CLIENT', () => {
+  showToast('ACCESS DENIED','Insufficient permissions: requires ADMIN role','🔒','err');
+});
+
+/* ================================================================
+   BOOT SEQUENCE
+================================================================ */
+
+const BOOT_LINES = [
+  ["NEXUS GRC OS v4.2.1 — ENTERPRISE KERNEL","",""],
+  ["[ 0.01 ] cold boot · node nexus-grc.handfilm.io","OK","ok"],
+  ["[ 0.03 ] loading <b>NEXUS_SCHEMAS.json</b> ...","8 APPS · 6 FRAMEWORKS","ok"],
+  ["[ 0.06 ] mounting event bus (Ghost Spine) ...","ONLINE","ok"],
+  ["[ 0.09 ] tenant context: <b>TNT-MRD-2026</b> ........","LOCKED","ok"],
+  ["[ 0.13 ] role binding: <b>ISO_AUDITOR</b> ...........","VERIFIED","ok"],
+  ["[ 0.17 ] GRC CORE · PCI DSS · ISO 27001 .......","ACTIVE","ok"],
+  ["[ 0.22 ] VAPT engine · 23 open CVEs flagged ..","ALERT","warn"],
+  ["[ 0.26 ] SIEM stream · threat feed live .......","INGESTING","ok"],
+  ["[ 0.30 ] FSM audit module · 1 active audit ....","LOADED","ok"],
+  ["[ 0.34 ] multi-tenancy enforced · session MFA .","PASS","ok"],
+  ["[ 0.38 ] CVE-2026-3318 · CVSS 9.8 detected ...","CRITICAL","err"],
+  ["[ 0.43 ] all modules nominal · 702 controls ....","72% PASS","ok"],
+  ["[ 0.47 ] entering secure session","",""],
+];
+
+let bootIdx=0;
+const bootLog=document.getElementById('boot-log');
+const bootFill=document.getElementById('boot-fill');
+const bootReady=document.getElementById('boot-ready');
+
+function bootStep(){
+  if(bootIdx>=BOOT_LINES.length){
+    bootFill.style.width='100%';
+    bootReady.classList.add('on');
+    return;
+  }
+  const [txt,status,cls]=BOOT_LINES[bootIdx];
+  const el=document.createElement('div');
+  el.innerHTML=txt+(status?`<span class="${cls||''}" style="margin-left:12px">${status}</span>`:'');
+  bootLog.appendChild(el);
+  if(bootLog.children.length>9)bootLog.removeChild(bootLog.firstChild);
+  bootFill.style.width=Math.round((bootIdx+1)/BOOT_LINES.length*100)+'%';
+  bootIdx++;
+  setTimeout(bootStep, 120);
+}
+
+function endBoot(){
+  if(document.getElementById('boot').classList.contains('done'))return;
+  document.getElementById('boot').classList.add('done');
+  document.getElementById('shell').classList.add('on');
+}
+
+bootStep();
+setTimeout(()=>{if(bootIdx>=BOOT_LINES.length)endBoot();},2400);
+document.getElementById('boot').addEventListener('click',()=>{if(bootIdx>=5)endBoot()});
+document.addEventListener('keydown',e=>{if(!document.getElementById('boot').classList.contains('done')&&bootIdx>=5)endBoot()});
+
+/* ================================================================
+   CLOCK + UPTIME
+================================================================ */
+const t0=Date.now();
+setInterval(()=>{
+  const d=document.getElementById('clock');
+  if(d)d.textContent=new Date().toLocaleTimeString('en-GB');
+  const u=document.getElementById('uptime');
+  if(u){
+    const s=Math.floor((Date.now()-t0)/1000);
+    u.textContent=[Math.floor(s/3600),Math.floor(s/60%60),s%60].map(n=>String(n).padStart(2,'0')).join(':');
+  }
+},1000);
+
+/* ================================================================
+   RENDER FUNCTIONS (all schema-driven)
+================================================================ */
+
+// ── TENANT BADGE
+function renderTenantBadge(){
+  const t=NEXUS_SCHEMAS.tenant;
+  document.getElementById('tenant-badge').innerHTML=`TENANT: ${t.id} · ${t.name}`;
+  document.getElementById('role-pill').innerHTML=`⬡ ${NEXUS_SCHEMAS.session.role.replace('_',' ')}`;
+}
+
+// ── METRIC STRIP
+function renderMetrics(){
+  const strip=document.getElementById('metric-strip');
+  strip.innerHTML=NEXUS_SCHEMAS.metrics.map(m=>`
+    <div class="mcard">
+      <div class="mc-l">${m.label}</div>
+      <div class="mc-v ${m.color}">${m.value} <small style="font-size:9px;font-weight:400;color:var(--muted)">${m.unit}</small></div>
+      <div class="mc-bar"><i style="width:${m.bar}%;background:var(--${m.color})"></i></div>
+    </div>
+  `).join('');
+}
+
+// ── SPINE NAV (schema-driven)
+function renderSpine(){
+  const spine=document.getElementById('spine');
+  spine.innerHTML=NEXUS_SCHEMAS.nav.map(section=>`
+    <div class="spine-section">
+      <div class="spine-label">${section.section}</div>
+      ${section.items.map(item=>`
+        <div class="spine-item ${STATE.currentView===item.id?'active':''}" data-view="${item.id}"
+             onclick="EventBus.emit('NAV_CHANGE',{viewId:'${item.id}'})">
+          <span class="si-icon">${item.icon}</span>
+          <span>${item.label}</span>
+          ${item.badge?`<span class="si-badge ${item.badgeClass||''}">${item.badge}</span>`:''}
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+// ── APP GRID (schema-driven map over apps[])
+function renderAppGrid(){
+  document.getElementById('app-grid-render').innerHTML=NEXUS_SCHEMAS.apps.map(app=>`
+    <div class="app-card" onclick="EventBus.emit('APP_LAUNCHED',{appId:'${app.id}'})">
+      <div class="ac-ico">${app.icon}</div>
+      <div class="ac-name">${app.name}</div>
+      <div class="ac-desc">${app.desc}</div>
+      <div class="ac-foot">
+        <span class="ac-status status-${app.status}">${app.status.toUpperCase()}</span>
+        <span class="ac-cat-tag">${app.category}</span>
+      </div>
+      <div class="ac-launch">LAUNCH ↗</div>
+    </div>
+  `).join('');
+}
+
+// ── COMPLIANCE CARDS (schema-driven)
+function renderCompliance(){
+  document.getElementById('compliance-render').innerHTML=NEXUS_SCHEMAS.compliance.map(c=>{
+    const r=56; const circ=2*Math.PI*r;
+    const dash=circ*(c.pct/100);
+    return `
+    <div class="comp-card">
+      <div class="comp-name">${c.name}</div>
+      <div class="comp-standard">${c.standard}</div>
+      <div class="comp-ring-wrap">
+        <div class="comp-ring">
+          <svg width="60" height="60" viewBox="0 0 60 60">
+            <circle class="ring-bg" cx="30" cy="30" r="${r/2}"/>
+            <circle class="ring-fill" cx="30" cy="30" r="${r/2}"
+              stroke="${c.color}"
+              stroke-dasharray="${circ/2} ${circ/2}"
+              stroke-dashoffset="${(circ/2)*(1-c.pct/100)}"/>
+          </svg>
+          <div class="comp-pct" style="color:${c.color}">${c.pct}%</div>
+        </div>
+        <div class="comp-details">
+          <div class="comp-det-row"><span>PASSED</span><b style="color:var(--green)">${c.passed}</b></div>
+          <div class="comp-det-row"><span>FAILED</span><b style="color:var(--red)">${c.failed}</b></div>
+          <div class="comp-det-row"><span>N/A</span><b>${c.na}</b></div>
+          <div class="comp-action">
+            <button class="btn btn-ghost" style="padding:4px 8px;font-size:8px"
+              onclick="EventBus.emit('GRC_OPEN_FRAMEWORK',{id:'${c.id}'});event.stopPropagation()">
+              VIEW CONTROLS →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── FSM RENDER
+function renderFSM(){
+  const track=document.getElementById('fsm-track');
+  track.innerHTML=FSM_STATES.map((s,i)=>`
+    <div class="fsm-step ${i<STATE.fsmState?'done':''} ${i===STATE.fsmState?'active':''}">
+      <div class="fsm-dot">${i<STATE.fsmState?'✓':s.icon}</div>
+      <div class="fsm-label">${s.label}</div>
+    </div>
+  `).join('');
+
+  const cur=FSM_STATES[STATE.fsmState];
+  document.getElementById('fsm-current-label').textContent=cur.label.toUpperCase();
+  document.getElementById('fsm-advance-btn').textContent=
+    STATE.fsmState>=FSM_STATES.length-1?'✓ AUDIT RESOLVED':'ADVANCE STATE →';
+
+  const logEl=document.getElementById('fsm-log');
+  if(STATE.fsmLog.length===0){
+    logEl.innerHTML='<span style="color:var(--muted)">No transitions recorded yet.</span>';
+  } else {
+    logEl.innerHTML=STATE.fsmLog.map(l=>
+      `▸ [${l.ts}] ${l.from} → <b style="color:var(--orange)">${l.to}</b> · by ${l.user}`
+    ).join('<br>');
+  }
+}
+
+// ── VULN LIST (schema-driven)
+function renderVulnList(){
+  document.getElementById('vuln-list-render').innerHTML=NEXUS_SCHEMAS.vulns.map(v=>`
+    <div class="vuln-row">
+      <span class="vuln-sev sev-${v.severity}">${v.severity.toUpperCase()}</span>
+      <span class="vuln-id">${v.id}</span>
+      <span class="vuln-name">${v.name}</span>
+      <span class="vuln-cvss">${v.cvss}</span>
+      <button class="btn btn-ghost" style="padding:3px 8px;font-size:8px;flex-shrink:0"
+        onclick="EventBus.emit('VULN_TRIAGE',{cve:'${v.id}'})">TRIAGE</button>
+    </div>
+  `).join('');
+}
+
+// ── CRM TABLE (schema-driven)
+function renderCRM(){
+  const riskColor={HIGH:'var(--orange)',CRIT:'var(--red)',MED:'var(--yellow)',LOW:'var(--green)'};
+  document.getElementById('crm-table-body').innerHTML=NEXUS_SCHEMAS.clients.map(c=>`
+    <tr>
+      <td style="color:var(--muted)">${c.id}</td>
+      <td style="font-weight:700">${c.org}</td>
+      <td><span class="tag">${c.industry}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:13px;font-weight:700;color:${c.score>=80?'var(--green)':c.score>=60?'var(--yellow)':'var(--red)'}">${c.score}%</span>
+          <div style="flex:1;height:3px;background:var(--border)"><div style="width:${c.score}%;height:100%;background:${c.score>=80?'var(--green)':c.score>=60?'var(--yellow)':'var(--red)'}"></div></div>
+        </div>
+      </td>
+      <td><span style="color:${riskColor[c.risk]};font-size:9px;letter-spacing:1.5px">${c.risk}</span></td>
+      <td><span class="ac-status ${c.status==='Active'?'status-online':c.status==='Review'?'status-maint':'status-offline'}">${c.status}</span></td>
+      <td>
+        <button class="btn btn-ghost" style="padding:3px 8px;font-size:8px"
+          onclick="EventBus.emit('CRM_VIEW_CLIENT',{id:'${c.id}'})">VIEW →</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ── RISK MATRIX
+function renderRiskMatrix(){
+  const levels=['crit','crit','high','med','low',
+                'crit','high','high','med','low',
+                'high','high','med','med','info',
+                'med','med','low','low','info',
+                'low','low','info','info','info'];
+  const vals=['C','C','H','M','L','C','H','H','M','L','H','H','M','M','I','M','M','L','L','I','L','L','I','I','I'];
+  document.getElementById('risk-matrix').innerHTML=
+    levels.map((l,i)=>`<div class="rm-cell lvl-${l}">${vals[i]}</div>`).join('');
+}
+
+// ── INTEL: CVE FEED
+function renderCVEFeed(){
+  const cves=[
+    {id:'CVE-2026-3318',sev:'CRIT',desc:'Apache Log4Shell RCE · CVSS 9.8 · PATCH NOW'},
+    {id:'CVE-2026-1107',sev:'HIGH',desc:'Windows NTLM Relay · CVSS 8.3 · KEV Listed'},
+    {id:'CVE-2025-9981',sev:'HIGH',desc:'Cisco IOS XE Auth Bypass · CVSS 7.9'},
+    {id:'CVE-2025-7742',sev:'MED', desc:'OpenSSH Integer Overflow · CVSS 6.1'},
+    {id:'CVE-2025-4401',sev:'HIGH',desc:'OpenSSL Buffer Overflow · CVSS 8.1'},
+  ];
+  const sev={CRIT:'sev-crit',HIGH:'sev-warn',MED:'sev-info'};
+  document.getElementById('cve-feed').innerHTML=cves.map(c=>`
+    <div class="feed-row ${sev[c.sev]||'sev-info'}">
+      <span class="fr-time">${c.id}</span>
+      <span class="fr-src">${c.sev}</span>
+      <span class="fr-msg">${c.desc}</span>
+    </div>
+  `).join('');
+}
+
+// ── INTEL: IOC TABLE
+function renderIOCTable(){
+  const iocs=[
+    {type:'IP',value:'45.153.204.12',conf:'98%',ttl:'72h'},
+    {type:'DOMAIN',value:'evil-c2.ru',conf:'91%',ttl:'Indefinite'},
+    {type:'HASH',value:'d41d8cd98f00b204…',conf:'99%',ttl:'30d'},
+    {type:'URL',value:'hxxps://phish.bd/…',conf:'85%',ttl:'24h'},
+    {type:'EMAIL',value:'ceo-spoof@mrd.io',conf:'77%',ttl:'7d'},
+  ];
+  document.getElementById('ioc-table').innerHTML=iocs.map(i=>`
+    <tr>
+      <td><span class="tag cyan">${i.type}</span></td>
+      <td style="font-family:var(--mono);font-size:9px;color:var(--muted)">${i.value}</td>
+      <td style="color:var(--green)">${i.conf}</td>
+      <td style="color:var(--muted)">${i.ttl}</td>
+    </tr>
+  `).join('');
+}
+
+/* ================================================================
+   NAVIGATION
+================================================================ */
+
+function navigateTo(viewId){
+  STATE.currentView=viewId;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  const target=document.getElementById('view-'+viewId);
+  if(target) target.classList.add('active');
+  renderSpine();
+}
+
+/* ================================================================
+   LIVE THREAT FEED (simulated)
+================================================================ */
+
+const FEED_MESSAGES=[
+  {src:'SIEM',msg:'Brute force attempt: 192.168.1.44 → SSH port 22',cls:'sev-crit'},
+  {src:'IDS',msg:'Port scan detected from external IP 45.153.204.12',cls:'sev-warn'},
+  {src:'SIEM',msg:'Successful login anomaly: USR-0042 from BD, expected SG',cls:'sev-warn'},
+  {src:'VAPT',msg:'CVE-2026-3318 confirmed exploitable on host 10.0.0.22',cls:'sev-crit'},
+  {src:'IDS',msg:'DNS exfiltration attempt blocked · 128 suspicious queries',cls:'sev-crit'},
+  {src:'EDR',msg:'Endpoint 192.168.1.88 — suspicious powershell execution',cls:'sev-warn'},
+  {src:'SIEM',msg:'PCI DSS Control 6.3.3 status: FAIL — patch gap detected',cls:'sev-warn'},
+  {src:'AUDIT',msg:'Evidence package SEC-AUDIT-2026-0038 sealed & archived',cls:'sev-info'},
+  {src:'SIEM',msg:'Compliance posture delta: -2.1% · trigger: 3 new failures',cls:'sev-warn'},
+  {src:'INTEL',msg:'New IOC ingested: 45.153.204.12 · TLP:RED',cls:'sev-crit'},
+];
+let feedIdx=0;
+function pushFeedItem(){
+  const body=document.getElementById('live-feed-body');
+  if(!body)return;
+  const item=FEED_MESSAGES[feedIdx%FEED_MESSAGES.length];
+  feedIdx++;
+  const ts=new Date().toLocaleTimeString('en-GB');
+  const row=document.createElement('div');
+  row.className='feed-row '+item.cls;
+  row.innerHTML=`<span class="fr-time">${ts}</span><span class="fr-src">${item.src}</span><span class="fr-msg">${item.msg}</span>`;
+  body.insertBefore(row,body.firstChild);
+  if(body.children.length>30)body.removeChild(body.lastChild);
+}
+
+/* ================================================================
+   VAPT SCAN SIMULATION
+================================================================ */
+function runScan(){
+  const fill=document.getElementById('scan-fill');
+  const pct=document.getElementById('scan-pct');
+  const statusLbl=document.getElementById('scan-status-label');
+  const phases=['Initializing…','ARP Discovery…','Port Enumeration…','Service Fingerprinting…','CVE Matching…','Generating Report…'];
+  let p=0;
+  const interval=setInterval(()=>{
+    STATE.scanPct=Math.min(STATE.scanPct+Math.random()*3+1,100);
+    if(fill)fill.style.width=STATE.scanPct+'%';
+    if(pct)pct.textContent=Math.floor(STATE.scanPct)+'%';
+    const phaseIdx=Math.floor(STATE.scanPct/17);
+    if(statusLbl&&phases[phaseIdx])statusLbl.textContent='PHASE '+(phaseIdx+1)+': '+phases[Math.min(phaseIdx,phases.length-1)];
+    if(STATE.scanPct>=100){
+      clearInterval(interval);
+      STATE.scanRunning=false;
+      if(statusLbl)statusLbl.textContent='SCAN COMPLETE — 6 VULNERABILITIES FOUND';
+      const btn=document.getElementById('scan-btn');
+      if(btn){btn.disabled=false;btn.textContent='⚡ RESCAN';}
+      showToast('SCAN COMPLETE','6 vulnerabilities discovered · 1 CRITICAL','✅','ok');
+      renderVulnList();
+    }
+  },80);
+}
+
+/* ================================================================
+   TOAST NOTIFICATIONS
+================================================================ */
+function showToast(title,msg,ico='ℹ',type='info'){
+  const rack=document.getElementById('toast-rack');
+  const t=document.createElement('div');
+  t.className=`toast toast-${type}`;
+  t.innerHTML=`<div class="toast-ico">${ico}</div><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div>`;
+  rack.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300)},3500);
+}
+
+/* ================================================================
+   INIT — Wire everything up after boot
+================================================================ */
+function initShell(){
+  renderTenantBadge();
+  renderMetrics();
+  renderSpine();
+  renderAppGrid();
+  renderCompliance();
+  renderFSM();
+  renderVulnList();
+  renderCRM();
+  renderRiskMatrix();
+  renderCVEFeed();
+  renderIOCTable();
+  // start live feed ticker
+  pushFeedItem();
+  setInterval(pushFeedItem,2800);
+}
+
+// Wait for boot to complete before wiring shell
+const shellEl=document.getElementById('shell');
+const bootEl=document.getElementById('boot');
+const observer=new MutationObserver(()=>{
+  if(shellEl.classList.contains('on')){
+    initShell();
+    observer.disconnect();
+  }
+});
+observer.observe(shellEl,{attributes:true,attributeFilter:['class']});
+
+// Also fire if manually entered
+document.getElementById('boot').addEventListener('click',()=>setTimeout(()=>{
+  if(shellEl.classList.contains('on')&&!document._shellInited){document._shellInited=true;initShell();}
+},100));
+document.addEventListener('keydown',()=>setTimeout(()=>{
+  if(shellEl.classList.contains('on')&&!document._shellInited){document._shellInited=true;initShell();}
+},100));
+
+// After all inits, register additional event listeners for UI
+EventBus.on('GRC_OPEN_FRAMEWORK',({id})=>{
+  navigateTo('grc');
+  showToast('FRAMEWORK LOADED',id.toUpperCase().replace('_',' '),'📜','info');
+});
+EventBus.on('VULN_TRIAGE',({cve})=>{
+  showToast('TRIAGE OPENED',cve+' · FSM workflow initiated','🔬','info');
+  navigateTo('grc');
+  setTimeout(()=>EventBus.emit('AUDIT_ADVANCE',{}),600);
+});
+EventBus.on('CRM_VIEW_CLIENT',({id})=>{
+  showToast('CLIENT RECORD',id+' · Loading profile…','🏢','info');
+});
+</script>
+</body>
+</html>
